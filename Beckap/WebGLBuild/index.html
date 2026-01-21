@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кубик Рубика 3D | Rubiks Cube 3D</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="stylesheet" href="TemplateData/diagnostics.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="TemplateData/diagnostics.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        min-height: 100vh;
+        overflow-x: hidden;
+        color: #fff;
+      }
+
+      .header {
+        text-align: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        color: #aaa;
+        font-size: 1rem;
+      }
+
+      .main-container {
+        display: flex;
+        height: calc(100vh - 100px);
+        padding: 20px;
+        gap: 20px;
+      }
+
+      /* Игровая область */
+      .game-section {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .game-wrapper {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+        position: relative;
+        min-height: 500px;
+      }
+
+      #unity-container {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      #unity-canvas {
+        width: 100% !important;
+        height: 100% !important;
+        background: #000;
+      }
+
+      /* Панель управления */
+      .controls-section {
+        flex: 1;
+        max-width: 350px;
+        min-width: 300px;
+      }
+
+      .controls-panel {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        height: 100%;
+        overflow-y: auto;
+      }
+
+      .controls-panel::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .controls-panel::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+      }
+
+      .controls-panel::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+      }
+
+      .controls-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 30px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .button-group {
+        margin-bottom: 35px;
+      }
+
+      .button-group-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #aaa;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .button-group-title::before {
+        content: '▸';
+        color: #667eea;
+      }
+
+      .unity-button {
+        padding: 18px 20px;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        width: 100%;
+        text-align: left;
+        margin-bottom: 12px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .unity-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .unity-button:hover:not(:disabled)::before {
+        opacity: 1;
+      }
+      
+      .unity-button:hover:not(:disabled) {
+        transform: translateX(5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+
+      .unity-button:active:not(:disabled) {
+        transform: translateX(2px);
+      }
+      
+      .unity-button span {
+        position: relative;
+        z-index: 1;
+      }
+      
+      #solve-button {
+        background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+      }
+      
+      #solve-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, #66BB6A 0%, #388E3C 100%);
+      }
+      
+      #stats-button,
+      #export-button {
+        background: linear-gradient(135deg, #2196F3 0%, #1565C0 100%);
+      }
+      
+      #stats-button:hover:not(:disabled),
+      #export-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, #42A5F5 0%, #1E88E5 100%);
+      }
+
+      /* Слайдер скорости */
+      .speed-control {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .speed-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        color: #aaa;
+      }
+
+      .speed-slider {
+        width: 100%;
+        height: 8px;
+        -webkit-appearance: none;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        outline: none;
+      }
+
+      .speed-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #667eea;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+
+      .colors-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .color-button {
+        padding: 16px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        border: none;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .color-button:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+      }
+
+      #pastel-button {
+        background: linear-gradient(135deg, #ffafbd 0%, #ffc3a0 100%);
+        color: #333;
+      }
+      
+      #standard-button {
+        background: linear-gradient(135deg, #4a6fa5 0%, #2a4a7a 100%);
+        color: white;
+      }
+      
+      #neon-button {
+        background: linear-gradient(135deg, #ff00ff 0%, #00ffff 100%);
+        color: white;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      }
+      
+      #grey-button {
+        background: linear-gradient(135deg, #616161 0%, #424242 100%);
+        color: white;
+      }
+      
+      .unity-button:disabled,
+      .color-button:disabled {
+        background: #444 !important;
+        color: #666 !important;
+        cursor: not-allowed;
+        opacity: 0.5;
+        transform: none !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+      }
+
+      /* Инструкция */
+      .instructions {
+        margin-top: 40px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        border-left: 4px solid #667eea;
+      }
+
+      .instructions h3 {
+        color: #fff;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+      }
+
+      .instructions ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .instructions li {
+        margin-bottom: 8px;
+        color: #aaa;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .instructions li::before {
+        content: '•';
+        color: #667eea;
+        font-weight: bold;
+      }
+
+      /* Модальные окна */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      @keyframes fadeIn {
+        from { 
+          opacity: 0;
+          backdrop-filter: blur(0px);
+        }
+        to { 
+          opacity: 1;
+          backdrop-filter: blur(10px);
+        }
+      }
+
+      .modal-content {
+        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+        margin: 5% auto;
+        padding: 0;
+        border: none;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 24px;
+        box-shadow: 
+          0 25px 50px -12px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .modal-content::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+      }
+
+      @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+
+      @keyframes modalSlideIn {
+        0% {
+          transform: translateY(-100px) scale(0.9);
+          opacity: 0;
+        }
+        60% {
+          transform: translateY(10px) scale(1.02);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        padding: 30px 30px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      }
+
+      .modal-close {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        color: #aaa;
+        font-size: 24px;
+        font-weight: 300;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        line-height: 1;
+        z-index: 1;
+      }
+
+      .modal-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        transform: rotate(90deg) scale(1.1);
+      }
+
+      .modal-icon {
+        font-size: 64px;
+        text-align: center;
+        margin-bottom: 15px;
+        animation: iconPulse 2s ease-in-out infinite;
+        filter: drop-shadow(0 4px 8px rgba(255, 193, 7, 0.3));
+      }
+
+      @keyframes iconPulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      .modal-title {
+        margin: 0 0 10px 0;
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-align: center;
+        letter-spacing: -0.5px;
+      }
+
+      .modal-body {
+        padding: 20px 30px 30px;
+      }
+
+      .modal-message {
+        font-size: 16px;
+        color: #aaa;
+        line-height: 1.8;
+        text-align: center;
+        margin-bottom: 0;
+        font-weight: 400;
+      }
+
+      .modal-message strong {
+        color: #fff;
+        font-weight: 600;
+      }
+
+      #stats-content {
+        white-space: pre-line;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.8;
+        color: #aaa;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      #stats-content::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #stats-content::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+      }
+
+      #stats-content::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+      }
+
+      #stats-content::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .modal-button {
+        flex: 1;
+        padding: 16px 24px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 0.3px;
+      }
+
+      .modal-button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+
+      .modal-button:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .modal-button span {
+        position: relative;
+        z-index: 1;
+      }
+
+      .modal-button-confirm {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      }
+
+      .modal-button-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+      }
+
+      .modal-button-confirm:active {
+        transform: translateY(0);
+      }
+
+      .modal-button-cancel {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        color: #aaa;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .modal-button-cancel:hover {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        color: #fff;
+      }
+
+      .modal-button-cancel:active {
+        transform: translateY(0);
+      }
+
+      /* Футер */
+      .footer {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-size: 0.9rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        margin-top: auto;
+      }
+
+      /* Адаптивность */
+      @media (max-width: 1200px) {
+        .main-container {
+          flex-direction: column;
+          height: auto;
+        }
+        
+        .controls-section {
+          max-width: 100%;
+          min-width: auto;
+        }
+        
+        .game-wrapper {
+          min-height: 600px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 2rem;
+        }
+        
+        .main-container {
+          padding: 10px;
+        }
+        
+        .controls-panel {
+          padding: 20px;
+        }
+        
+        .colors-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .unity-button {
+          padding: 15px;
+          font-size: 0.9rem;
+        }
+        
+        .modal-content {
+          width: 95%;
+          margin: 10% auto;
+        }
+        
+        .modal-title {
+          font-size: 24px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .header {
+          padding: 15px;
+        }
+        
+        .header h1 {
+          font-size: 1.8rem;
+        }
+        
+        .controls-title {
+          font-size: 1.5rem;
+        }
+        
+        .game-wrapper {
+          padding: 10px;
+        }
+        .speed-label {
+          font-size: 0.85rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Шапка -->
+    <div class="header">
+      <h1>Кубик Рубика 3D</h1>
+      <p>Полноценная 3D симуляция легендарной головоломки</p>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-container">
+      <!-- Игровая область -->
+      <div class="game-section">
+        <div class="game-wrapper">
+          <div id="unity-container" class="unity-desktop">
+            <canvas id="unity-canvas" width=1200 height=800 tabindex="-1"></canvas>
+            <div id="unity-loading-bar">
+              <div id="unity-logo"></div>
+              <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+              </div>
+            </div>
+            <div id="unity-warning"> </div>
+            <div id="unity-footer">
+              <div id="unity-webgl-logo"></div>
+              <div id="unity-fullscreen-button"></div>
+              <img id="diagnostics-icon" src="TemplateData/webmemd-icon.png">
+              <div id="unity-build-title">Rubiks Cube 3D</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Панель управления -->
+      <div class="controls-section">
+        <div class="controls-panel">
+          <h2 class="controls-title">🎮 Управление</h2>
+          
+          <div class="button-group">
+            <div class="button-group-title">Действия</div>
+            <button id="solve-button" class="unity-button" onclick="solveCube()" disabled>
+              <span>🎯</span>
+              <span>Решить кубик</span>
+            </button>
+            <button id="stats-button" class="unity-button" onclick="showStats()" disabled>
+              <span>📊</span>
+              <span>Статистика</span>
+            </button>
+            <button id="export-button" class="unity-button" onclick="exportStats()" disabled>
+              <span>💾</span>
+              <span>Сохранить результаты</span>
+            </button>
+          </div>
+
+          <!-- Слайдер скорости -->
+          <div class="button-group">
+            <div class="button-group-title">Скорость анимации</div>
+            <div class="speed-control">
+              <div class="speed-label">
+                <span>Медленно</span>
+                <span>Быстро</span>
+              </div>
+              <input type="range" min="0.1" max="5" step="0.1" value="1" class="speed-slider" id="speed-slider" oninput="updateSpeed(this.value)">
+            </div>
+          </div>
+
+          <div class="button-group">
+            <div class="button-group-title">Стили кубика</div>
+            <div class="colors-grid">
+              <button id="pastel-button" class="color-button" onclick="handleButtonClick('Pastel')" disabled>
+                Pastel
+              </button>
+              <button id="standard-button" class="color-button" onclick="handleButtonClick('Standart')" disabled>
+                Standard
+              </button>
+              <button id="neon-button" class="color-button" onclick="handleButtonClick('Neon')" disabled>
+                Neon
+              </button>
+              <button id="grey-button" class="color-button" onclick="handleButtonClick('Grey')" disabled>
+                Grey
+              </button>
+            </div>
+          </div>
+
+          <div class="instructions">
+            <h3>🎯 Как играть:</h3>
+            <ul>
+              <li>Вращайте стороны кубика мышкой</li>
+              <li>Используйте колёсико для зума</li>
+              <li>Нажмите и удерживайте для вращения кубика</li>
+              <li>Используйте кнопки для автоповоротов</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно предупреждения -->
+    <div id="warning-modal" class="modal-overlay" onclick="if(event.target === this) closeWarning()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button class="modal-close" onclick="closeWarning()" aria-label="Закрыть">&times;</button>
+          <div class="modal-icon">⚠️</div>
+          <h2 class="modal-title">Внимание!</h2>
+        </div>
+        <div class="modal-body">
+          <div class="modal-message">
+            При изменении цвета кубик будет <strong>сброшен</strong> до изначального состояния.<br><br>
+            Все текущие изменения будут потеряны.<br><br>
+            Вы уверены, что хотите продолжить?
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-button modal-button-cancel" onclick="closeWarning()">
+              <span>Отмена</span>
+            </button>
+            <button class="modal-button modal-button-confirm" onclick="confirmColorChange()">
+              <span>Продолжить</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно статистики -->
+    <div id="stats-modal" class="modal-overlay" onclick="if(event.target === this) closeStats()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button class="modal-close" onclick="closeStats()" aria-label="Закрыть">&times;</button>
+          <h2 class="modal-title">📊 Статистика игры</h2>
+        </div>
+        <div class="modal-body">
+          <div id="stats-content">Загрузка статистики...</div>
+          <div class="modal-buttons" style="border-top: none; margin-top: 20px; padding-top: 0;">
+            <button class="modal-button modal-button-confirm" onclick="closeStats()" style="width: 100%;">
+              <span>Закрыть</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let pendingColorChange = null;
+
+      function handleButtonClick(colorType) {
+        pendingColorChange = colorType;
+        document.getElementById('warning-modal').style.display = 'block';
+      }
+
+      function confirmColorChange() {
+        if (pendingColorChange && window.unityInstance) {
+          window.unityInstance.SendMessage('Cube', 'CreateCube', pendingColorChange);
+        } else if (!window.unityInstance) {
+          alert('Unity еще не загрузился! Пожалуйста, подождите.');
+        }
+        closeWarning();
+        pendingColorChange = null;
+      }
+
+      function closeWarning() {
+        document.getElementById('warning-modal').style.display = 'none';
+        pendingColorChange = null;
+      }
+      
+      function showStats() {
+        if (window.unityInstance) {
+          window.unityInstance.SendMessage('Cube', 'GetStats');
+          document.getElementById('stats-modal').style.display = 'block';
+          updateStatsDisplay();
+        } else {
+          alert('Unity еще не загрузился! Пожалуйста, подождите.');
+        }
+      }
+      
+      function closeStats() {
+        document.getElementById('stats-modal').style.display = 'none';
+      }
+      
+      function updateStatsDisplay() {
+        var statsContent = document.getElementById('stats-content');
+        statsContent.textContent = 'Загрузка статистики...';
+      }
+      
+      window.receiveStats = function(stats) {
+        var statsContent = document.getElementById('stats-content');
+        if (statsContent) {
+          statsContent.textContent = stats;
+        }
+      };
+      
+      function solveCube() {
+        if (window.unityInstance) {
+          window.unityInstance.SendMessage('Cube', 'SolveCube');
+          var solveButton = document.getElementById('solve-button');
+          solveButton.disabled = true;
+          solveButton.innerHTML = '<span>⏳</span><span>Решение...</span>';
+          
+          setTimeout(function() {
+            solveButton.disabled = false;
+            solveButton.innerHTML = '<span>🎯</span><span>Решить кубик</span>';
+          }, 30000);
+        } else {
+          alert('Unity еще не загрузился! Пожалуйста, подождите.');
+        }
+      }
+
+      function exportStats() {
+        if (window.unityInstance) {
+          window.unityInstance.SendMessage('Cube', 'ExportStatsToJSON');
+        } else {
+          alert('Unity еще не загрузился! Пожалуйста, подождите.');
+        }
+      }
+
+      function updateSpeed(value) {
+        if (window.unityInstance) {
+          window.unityInstance.SendMessage('Cube', 'WebGL_SetSpeed', parseFloat(value));
+        }
+      }
+      
+      function setButtonsEnabled(enabled) {
+        document.getElementById('solve-button').disabled = !enabled;
+        document.getElementById('stats-button').disabled = !enabled;
+        document.getElementById('export-button').disabled = !enabled;
+        document.getElementById('pastel-button').disabled = !enabled;
+        document.getElementById('standard-button').disabled = !enabled;
+        document.getElementById('neon-button').disabled = !enabled;
+        document.getElementById('grey-button').disabled = !enabled;
+        document.getElementById('speed-slider').disabled = !enabled;
+      }
+
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+      var diagnostics_icon = document.getElementById("diagnostics-icon");
+
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/WebGLBuild.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/WebGLBuild.data.unityweb",
+        frameworkUrl: buildUrl + "/WebGLBuild.framework.js.unityweb",
+        codeUrl: buildUrl + "/WebGLBuild.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "RubiksCube",
+        productName: "Rubiks Cube 3D",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+      };
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        diagnostics_icon.style.position = "fixed";
+        diagnostics_icon.style.bottom = "10px";
+        diagnostics_icon.style.right = "0px";
+        canvas.after(diagnostics_icon);
+      } else {
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
+      }
+
+      loadingBar.style.display = "block";
+      setButtonsEnabled(false);
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          window.unityInstance = unityInstance;
+          loadingBar.style.display = "none";
+          setButtonsEnabled(true);
+          
+          diagnostics_icon.onclick = () => {
+            unityDiagnostics.openDiagnosticsDiv(unityInstance.GetMemoryInfo);
+          };
+          fullscreenButton.onclick = () => {
+            unityInstance.SetFullscreen(1);
+          };
+        }).catch((message) => {
+          alert(message);
+          setButtonsEnabled(true);
+        });
+      };
+
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>
