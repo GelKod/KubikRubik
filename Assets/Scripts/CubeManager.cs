@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -217,7 +217,7 @@ public class CubeManager : MonoBehaviour
             }
         }
         this.step++;
-        WebGLEvent.SendEvent("SET_STEP", this.step.ToString());
+        WebGLBridge.SendEvent("SET_STEP", this.step.ToString());
         canTimer = true;
         canRotate = true;
     }
@@ -311,7 +311,7 @@ public class CubeManager : MonoBehaviour
         {
             lastSec = sec;
             timerClass = new TimerClass { min = min, sec = sec };
-            WebGLEvent.SendEvent("SET_TIME", JsonUtility.ToJson(timerClass));
+            WebGLBridge.SendEvent("SET_TIME", JsonUtility.ToJson(timerClass));
         }
     }
 
@@ -356,8 +356,30 @@ public class CubeManager : MonoBehaviour
         Debug.Log("Победа! Кубик Рубика собран!");
         canTimer = false; // Останавливаем таймер
 
-        WebGLEvent.SendEvent("WIN_GAME","");
+        WebGLBridge.SendEvent("WIN_GAME","");
 
         CreateCube();
+    }
+
+    public void HandleJSEvent(string type, string payload)
+    {
+        switch (type)
+        {
+            case "SET_SPEED":
+                if (float.TryParse(payload, out float speed))
+                {
+                    SetSpeed(speed);
+                }
+                break;
+            case "SHUFFLE":
+                WebGL_Shuffle();
+                break;
+            case "RESET":
+                CreateCube();
+                break;
+            case "LOAD_DATA":
+                saveSystem.LoadFromJSON(payload);
+                break;
+        }
     }
 }

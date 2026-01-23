@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Runtime.InteropServices;
 
-public class WebGLEvent : MonoBehaviour
+public class WebGLBridge : MonoBehaviour
 {
     public CubeManager cubeManager;
 
@@ -23,7 +23,7 @@ public class WebGLEvent : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
         DispatchUnityEvent(json);
 #else
-        Debug.Log("EVENT → " + json);
+        Debug.Log("UNITY → JS: " + json);
 #endif
     }
 
@@ -35,25 +35,9 @@ public class WebGLEvent : MonoBehaviour
     }
 
     // JS → Unity
-    public void Command(string command)
+    public void ReceiveEvent(string json)
     {
-        var parts = command.Split('|');
-        var cmd = parts[0];
-        var payload = parts.Length > 1 ? parts[1] : "";
-
-        switch (cmd)
-        {
-            case "SET_SPEED":
-                cubeManager.SetSpeed(float.Parse(payload));
-                break;
-
-            case "SHUFFLE":
-                cubeManager.WebGL_Shuffle();
-                break;
-
-            case "RESET":
-                cubeManager.CreateCube();
-                break;
-        }
+        EventMessage msg = JsonUtility.FromJson<EventMessage>(json);
+        cubeManager.HandleJSEvent(msg.type, msg.payload);
     }
 }
