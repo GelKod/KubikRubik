@@ -1,24 +1,38 @@
-// unity.js — Unity WebGL интеграция
-function confirmColorChange(){
-  if(pendingColorChange && window.unityInstance){
-    unityInstance.SendMessage('Cube','CreateCube',pendingColorChange);
+let unityInstance = null;
+
+createUnityInstance(document.querySelector("canvas"), config)
+  .then(instance => {
+    unityInstance = instance;
+  });
+
+function sendCommand(cmd, payload = "") {
+  if (!unityInstance) return;
+  unityInstance.SendMessage(
+    "WebGLEvent",
+    "Command",
+    cmd + "|" + payload
+  );
+}
+
+// Unity → JS
+window.onUnityEvent = function (event) {
+  console.log("Unity event:", event);
+
+  switch (event.type) {
+
+    case "SET_TIME": {
+      const t = JSON.parse(event.payload);
+      document.getElementById("TimeM").textContent = t.min;
+      document.getElementById("TimeS").textContent = t.sec;
+      break;
+    }
+
+    case "SET_STEP":
+      document.getElementById("Step").textContent = event.payload;
+      break;
+
+    case "WIN_GAME":
+      alert("ПОБЕДА!");
+      break;
   }
-  closeWarning();
-}
-
-function solveCube(){
-  if(!window.unityInstance)return alert('Unity не загружен');
-  unityInstance.SendMessage('Cube','SolveCube');
-}
-
-function updateSpeed(v){
-  if(!window.unityInstance)return;
-  unityInstance.SendMessage('Cube','WebGL_SetSpeed',parseFloat(v));
-  document.getElementById('Speed').textContent=parseFloat(v).toFixed(1)+'x';
-}
-
-function setButtonsEnabled(e){
-  ['solve-button','stats-button','pastel-button','standard-button',
-   'neon-button','grey-button','speed-slider','save-button','load-button','export-stats-button']
-   .forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!e});
-}
+};

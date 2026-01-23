@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -15,20 +16,18 @@ public class CubeManager : MonoBehaviour
     private bool canTimer = false;
     [SerializeField] public float rotationSpeed = 1f;
     [SerializeField] public int step = 0;
-    [SerializeField] public int min, sec = 0;
+    public TimerClass timerClass;
     [SerializeField] public float _elapsedTime = 0f;
     [SerializeField] public List<float[]> _cubes = new List<float[]>();
-    //[SerializeField] public float[] _coordsCubs = new float[7];
     [SerializeField] public string _style = "Standart";
     public SaveSystem saveSystem;
     public string data = DateTime.Now.ToString();
+    int lastSec = -1;
 
     void Start()
     {
         cubeRoot = transform;
         CreateCube("Standart");
-        SendNumberInt(step, "Step");
-        SendNumberFloat(rotationSpeed, "Speed");
     }
 
     void Update()
@@ -40,18 +39,17 @@ public class CubeManager : MonoBehaviour
         if (canTimer)
         {
             Timer();
-            SendTime(min, sec);
             CheckSolved();
         }
     }
 
     public int GetTimeS()
     {
-        return sec;
+        return timerClass.sec;
     }
     public int GetTimeM()
     {
-        return min;
+        return timerClass.min;
     }
     public int GetStep()
     {
@@ -76,6 +74,10 @@ public class CubeManager : MonoBehaviour
             _cubes.Add(_coordsCubs);
         }
         return _cubes;
+    }
+    public void SetSpeed(float speed)
+    {
+        rotationSpeed=speed;
     }
     public void RefreshCube(string style, List<float[]> allCubes)
     {
@@ -102,24 +104,6 @@ public class CubeManager : MonoBehaviour
         }
         centerPiece = allPieces[13]; // центр кубика для вращения
     }
-
-    // Для автозагрузки
-    //void OnEnable()
-    //{
-    //    // Загружаем автосохранение через 1 секунду после старта
-    //    Invoke(nameof(LoadAutoSave), 1f);
-    //}
-
-    //void LoadAutoSave()
-    //{
-    //    var saveSystem = GetComponent<SaveSystem>();
-    //    if (saveSystem != null)
-    //    {
-    //        saveSystem.LoadAutoSave();
-    //    }
-    //}
-
-
     void CheckKeyboardInput()
     {
         if (Input.GetKeyDown(KeyCode.W)) StartCoroutine(RotateFace(GetFacePieces(0), Vector3.up));
@@ -233,7 +217,7 @@ public class CubeManager : MonoBehaviour
             }
         }
         this.step++;
-        SendNumberInt(this.step, "Step");
+        WebGLEvent.SendEvent("SET_STEP", this.step.ToString());
         canTimer = true;
         canRotate = true;
     }
@@ -309,78 +293,39 @@ public class CubeManager : MonoBehaviour
         }
     }
 
+    [System.Serializable]
+    public class TimerClass
+    {
+        public int min;
+        public int sec;
+    }
+
     void Timer()
     {
         _elapsedTime += Time.deltaTime;
 
-        // Рассчитываем минуты и секунды
-        min = Mathf.FloorToInt(_elapsedTime / 60);
-        sec = Mathf.FloorToInt(_elapsedTime % 60);
+        int min = Mathf.FloorToInt(_elapsedTime / 60);
+        int sec = Mathf.FloorToInt(_elapsedTime % 60);
 
-        // Форматируем в строку 00:00
-        //string timerString = string.Format("{0:00}:{1:00}", min, sec);
+        if (sec != lastSec)
+        {
+            lastSec = sec;
+            timerClass = new TimerClass { min = min, sec = sec };
+            WebGLEvent.SendEvent("SET_TIME", JsonUtility.ToJson(timerClass));
+        }
     }
+
 
     void ClearTimer()
     {
         _elapsedTime = 0f;
-        min = 0;
-        sec = 0;
+        timerClass = null;
         canTimer = false;
-    }
-
-    public void SendNumberInt(int val, string type)
-    {
-        if (Application.platform == RuntimePlatform.WebGLPlayer && !Application.isEditor && type == "Step")
-        {
-            SendStepToJS(val);
-        }
-        else
-        {
-            Debug.Log("В редакторе JS не вызывается, значение: " + val);
-        }
-    }
-    public void SendNumberFloat(float val, string type)
-    {
-        if (Application.platform == RuntimePlatform.WebGLPlayer && !Application.isEditor && type == "Speed")
-        {
-            SendSpeedToJS(val);
-        }
-        else
-        {
-            Debug.Log("В редакторе JS не вызывается, значение: " + val);
-        }
-    }
-    public void SendTime(int val1, int val2)
-    {
-        if (Application.platform == RuntimePlatform.WebGLPlayer && !Application.isEditor)
-        {
-            SendTimeMToJS(val1);
-            SendTimeSToJS(val2);
-        }
-        else
-        {
-            Debug.Log("В редакторе JS не вызывается, значение: " + val1);
-        }
     }
 
     // Методы для вызова из HTML (если нужно)
     public void WebGL_CreateCube(string style) => CreateCube(style);
     public void WebGL_Shuffle() { if (canRotate) StartCoroutine(ShuffleCube()); }
-    public void WebGL_SetSpeed(float speed)
-    {
-        rotationSpeed = speed;
-        SendNumberFloat(rotationSpeed, "Speed");
-    }
-
-    [DllImport("__Internal")]
-    private static extern void SendTimeMToJS(int val);
-    [DllImport("__Internal")]
-    private static extern void SendTimeSToJS(int val);
-    [DllImport("__Internal")]
-    private static extern void SendStepToJS(int val);
-    [DllImport("__Internal")]
-    private static extern void SendSpeedToJS(float val);
 
     public void CheckSolved()
     {
@@ -411,18 +356,8 @@ public class CubeManager : MonoBehaviour
         Debug.Log("Победа! Кубик Рубика собран!");
         canTimer = false; // Останавливаем таймер
 
-        ShowWinModal();
+        WebGLEvent.SendEvent("WIN_GAME","");
 
         CreateCube();
     }
-    public void ShowWinModal()
-    {
-#if UNITY_WEBGL && !UNITY_EDITOR
-        Application.ExternalCall("showWinModal");
-#else
-        Debug.Log("Показать окно победы");
-        // Для теста в редакторе
-#endif
-    }
-
 }

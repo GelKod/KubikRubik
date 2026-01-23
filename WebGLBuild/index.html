@@ -1,14 +1,287 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-<meta charset="utf-8">
-<title>Rubiks Cube 3D</title>
-<link rel="stylesheet" href="css/main.css">
-</head>
-<body>
-<!-- HTML без изменений -->
-<script src="js/ui.js"></script>
-<script src="js/unity.js"></script>
-<script src="js/save.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кубик Рубика 3D | Rubiks Cube 3D</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="stylesheet" href="TemplateData/diagnostics.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="TemplateData/diagnostics.js"></script>
+    <link rel="stylesheet" href="css/main.css">
+  </head>
+
+  <canvas id="unity-canvas"></canvas>
+
+  <script src="Build/WebGLBuild.loader.js"></script>
+  <script>
+    const canvas = document.querySelector("#unity-canvas");
+  
+    const config = {
+      dataUrl: "Build/WebGLBuild.data",
+      frameworkUrl: "Build/WebGLBuild.framework.js",
+      codeUrl: "Build/WebGLBuild.wasm",
+    };
+  
+    createUnityInstance(canvas, config).then((instance) => {
+      window.unityInstance = instance;
+      console.log("Unity loaded");
+    });
+  </script>
+
+  <body>
+    <!-- Шапка -->
+    <div class="header">
+      <h1>Кубик Рубика 3D</h1>
+      <p>Полноценная 3D симуляция легендарной головоломки</p>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-container">
+      <!-- Игровая область -->
+      <div class="game-section">
+        <!-- Статистика игры -->
+        <div class="stats-section">
+          <div class="stats-overlay">
+            <div class="stat-item">
+              <div class="stat-title">
+                <span class="stat-icon">⏱️</span>
+                <span>ТАЙМЕР</span>
+              </div>
+              <div class="stat-timer">
+                <div class="stat-value" id="TimeM">00</div>
+                <div class="stat-value" id="Time:">:</div>
+                <div class="stat-value" id="TimeS">00</div>
+              </div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-title">
+                <span class="stat-icon">👣</span>
+                <span>ШАГИ</span>
+              </div>
+              <div class="stat-value" id="Step">0</div>
+            </div>
+
+            <div class="stat-item">
+              <div class="stat-title">
+                <span class="stat-icon">⚡</span>
+                <span>СКОРОСТЬ</span>
+              </div>
+              <div class="stat-value" id="Speed">1.0x</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-wrapper">
+          <div id="unity-container" class="unity-desktop">
+            <canvas id="unity-canvas" width=1200 height=800 tabindex="-1"></canvas>
+            <div id="unity-loading-bar">
+              <div id="unity-logo"></div>
+              <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+              </div>
+            </div>
+            <div id="unity-warning"> </div>
+            <div id="unity-footer">
+              <div id="unity-webgl-logo"></div>
+              <div id="unity-fullscreen-button"></div>
+              <img id="diagnostics-icon" src="TemplateData/webmemd-icon.png">
+              <div id="unity-build-title">Rubiks Cube 3D</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Панель управления -->
+      <div class="controls-section">
+        <div class="controls-panel">
+          <h2 class="controls-title">🎮 Управление</h2>
+
+          <div class="button-group">
+            <div class="button-group-title">Действия</div>
+            <button id="solve-button" class="unity-button" onclick="solveCube()" disabled>
+              <span>🎯</span>
+              <span>Решить кубик</span>
+            </button>
+            <button id="stats-button" class="unity-button" onclick="showStats()" disabled>
+              <span>📊</span>
+              <span>Статистика</span>
+            </button>
+
+            <div class="button-group">
+              <div class="button-group-title">💾 Сохранение</div>
+              <button id="save-button" class="unity-button" onclick="sendCommand('SAVE_GAME')" disabled>
+                <span>💾</span>
+                <span>Сохранить в файл</span>
+              </button>
+              <button id="load-button" class="unity-button" onclick="triggerLoad()" disabled>
+                <span>📂</span>
+                <span>Загрузить из файла</span>
+              </button>
+              <button id="export-stats-button" class="unity-button" onclick="exportStats()" disabled>
+                <span>📊</span>
+                <span>Экспорт статистики</span>
+              </button>
+            </div>
+
+          <!-- Слайдер скорости -->
+          <div class="button-group">
+            <div class="button-group-title">Скорость анимации</div>
+            <div class="speed-control">
+              <div class="speed-label">
+                <span>Медленно</span>
+                <span>Быстро</span>
+              </div>
+              <input type="range" min="0.1" max="5" step="0.1" value="1" class="speed-slider" id="speed-slider" oninput="updateSpeed(this.value)">
+            </div>
+          </div>
+
+          <div class="button-group">
+            <div class="button-group-title">Стили кубика</div>
+            <div class="colors-grid">
+              <button id="pastel-button" class="color-button" onclick="handleButtonClick('Pastel')" disabled>
+                Pastel
+              </button>
+              <button id="standard-button" class="color-button" onclick="handleButtonClick('Standart')" disabled>
+                Standard
+              </button>
+              <button id="neon-button" class="color-button" onclick="handleButtonClick('Neon')" disabled>
+                Neon
+              </button>
+              <button id="grey-button" class="color-button" onclick="handleButtonClick('Grey')" disabled>
+                Grey
+              </button>
+            </div>
+          </div>
+
+          <div class="instructions">
+            <h3>🎯 Как играть:</h3>
+            <ul>
+              <li>Вращайте стороны кубика мышкой</li>
+              <li>Используйте колёсико для зума</li>
+              <li>Нажмите и удерживайте для вращения кубика</li>
+              <li>Используйте кнопки для автоповоротов</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Футер -->
+    <div class="footer">
+      <p>Кубик Рубика 3D Симулятор © 2024 | Для образовательных целей</p>
+    </div>
+
+    <!-- Модальное окно предупреждения -->
+    <div id="warning-modal" class="modal-overlay" onclick="if(event.target === this) closeWarning()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button class="modal-close" onclick="closeWarning()" aria-label="Закрыть">&times;</button>
+          <div class="modal-icon">⚠️</div>
+          <h2 class="modal-title">Внимание!</h2>
+        </div>
+        <div class="modal-body">
+          <div class="modal-message">
+            При изменении цвета кубик будет <strong>сброшен</strong> до изначального состояния.<br><br>
+            Все текущие изменения будут потеряны.<br><br>
+            Вы уверены, что хотите продолжить?
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-button modal-button-cancel" onclick="closeWarning()">
+              <span>Отмена</span>
+            </button>
+            <button class="modal-button modal-button-confirm" onclick="confirmColorChange()">
+              <span>Продолжить</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="win-modal" class="modal-overlay" onclick="if(event.target === this) closeWinModal()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button class="modal-close" onclick="closeWinModal()" aria-label="Закрыть">&times;</button>
+          <div class="modal-icon">🏆</div>
+          <h2 class="modal-title">ПОБЕДА!</h2>
+        </div>
+        <div class="modal-body">
+          <div class="modal-message">
+            <!-- Результаты игры -->
+            <div class="win-results">
+              <div class="win-stat-item">
+                <div class="win-stat-title">
+                  <span class="win-stat-icon">⏱️</span>
+                  <span>ВРЕМЯ</span>
+                </div>
+                <div class="win-stat-value">
+                  <span id="win-time">00:00</span>
+                </div>
+              </div>
+
+              <div class="win-stat-item">
+                <div class="win-stat-title">
+                  <span class="win-stat-icon">👣</span>
+                  <span>ШАГИ</span>
+                </div>
+                <div class="win-stat-value">
+                  <span id="win-steps">0</span>
+                </div>
+              </div>
+
+              <div class="win-stat-item">
+                <div class="win-stat-title">
+                  <span class="win-stat-icon">⚡</span>
+                  <span>СКОРОСТЬ</span>
+                </div>
+                <div class="win-stat-value">
+                  <span id="win-speed">1.0x</span>
+                </div>
+              </div>
+
+              <div class="win-stat-item">
+                <div class="win-stat-title">
+                  <span class="win-stat-icon">📅</span>
+                  <span>ДАТА</span>
+                </div>
+                <div class="win-stat-value">
+                  <span id="Date">--.--.----</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-button modal-button-cancel" onclick="closeWinModal()">
+              <span>Закрыть</span>
+            </button>
+            <button class="modal-button modal-button-confirm" onclick="restartGame()">
+              <span>Играть снова</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Модальное окно статистики -->
+    <div id="stats-modal" class="modal-overlay" onclick="if(event.target === this) closeStats()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button class="modal-close" onclick="closeStats()" aria-label="Закрыть">&times;</button>
+          <h2 class="modal-title">📊 Статистика игры</h2>
+        </div>
+        <div class="modal-body">
+          <div id="stats-content">Загрузка статистики...</div>
+          <div class="modal-buttons" style="border-top: none; margin-top: 20px; padding-top: 0;">
+            <button class="modal-button modal-button-confirm" onclick="closeStats()" style="width: 100%;">
+              <span>Закрыть</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/unity.js"></script>
+  </body>
 </html>

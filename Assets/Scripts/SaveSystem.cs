@@ -59,12 +59,6 @@ public class SaveSystem : MonoBehaviour
         // Получаем все кубики через публичное свойство
         List<float[]> allPieces = cubeManager.GetPozition();
 
-        //if (allPieces == null || allPieces.Count == 0)
-        //{
-        //    Debug.LogError("Список кубиков пуст!");
-        //    return saveData;
-        //}
-
         foreach (float[] piece in allPieces)
         {
             if (piece == null) continue;
@@ -94,63 +88,15 @@ public class SaveSystem : MonoBehaviour
     // Вызывается из HTML кнопки "Сохранить"
     public void SaveToJSON()
     {
-        try
-        {
-            if (cubeManager == null)
-            {
-                Debug.LogError("CubeManager не найден!");
-                return;
-            }
-
-            var saveData = CollectSaveData();
-
-            if (saveData.cubelets.Count == 0)
-            {
-                Debug.LogError("Нет данных для сохранения!");
-                return;
-            }
-
-            string json = JsonUtility.ToJson(saveData, true);
-
-#if UNITY_WEBGL && !UNITY_EDITOR
-            string fileName = $"RubikSave_{System.DateTime.Now:yyyyMMdd_HHmmss}.json";
-            DownloadFile(fileName, json);
-            ShowSaveSuccess("Сохранение успешно создано!");
-#else
-            string path = Path.Combine(Application.persistentDataPath, "save.json");
-            File.WriteAllText(path, json);
-            Debug.Log($"Успешно сохранено: {path}");
-#endif
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Ошибка сохранения: {e.Message}\n{e.StackTrace}");
-#if UNITY_WEBGL && !UNITY_EDITOR
-            ShowSaveError($"Ошибка сохранения: {e.Message}");
-#endif
-        }
+        WebGLEvent.SendEvent("SAVE_DATA", JsonUtility.ToJson(CollectSaveData(), true));
     }
 
     // Загрузка из JSON строки
     public void LoadFromJSON(string json)
     {
-        try
-        {
-            CubeSaveData saveData = JsonUtility.FromJson<CubeSaveData>(json);
-            ApplySaveData(saveData);
-            Debug.Log("Ебало будет бито");
-
-#if UNITY_WEBGL && !UNITY_EDITOR
-            ShowSaveSuccess("Сохранение загружено!");
-#endif
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Ошибка загрузки: {e.Message}");
-#if UNITY_WEBGL && !UNITY_EDITOR
-            ShowSaveError($"Ошибка загрузки: {e.Message}");
-#endif
-        }
+        CubeSaveData saveData = JsonUtility.FromJson<CubeSaveData>(json);
+        ApplySaveData(saveData);
+        Debug.Log("Ебало будет бито");
     }
 
     // Применение сохраненных данных
@@ -182,76 +128,18 @@ public class SaveSystem : MonoBehaviour
         cubeManager.RefreshCube(saveData.cubeStyle, allCubes);
 
         cubeManager.step = saveData.step;
-        cubeManager.min = saveData.min;
-        cubeManager.sec = saveData.sec;
+        cubeManager.timerClass.min = saveData.min;
+        cubeManager.timerClass.sec = saveData.sec;
         cubeManager._elapsedTime = saveData.elapsedTime;
         cubeManager.rotationSpeed = saveData.rotationSpeed;
         cubeManager._style = saveData.cubeStyle;
 
         Debug.Log(cubeManager._style);
 
-        // ОБНОВЛЯЕМ UI - КРИТИЧЕСКИ ВАЖНО!
-        // Вызываем публичные методы CubeManager для обновления JavaScript
-        cubeManager.SendNumberInt(saveData.step, "Step");
-        cubeManager.SendNumberFloat(saveData.rotationSpeed, "Speed");
-        cubeManager.SendTime(saveData.min, saveData.sec);
+        WebGLEvent.SendEvent("SET_STEP", saveData.step);
+        WebGLEvent.SendEvent("SET_SPEED", saveData.rotationSpeed);
+        WebGLEvent.SendEvent("SET_TIME", cubeManager.timerClass);
 
         Debug.Log($"Сохранение загружено! Шаги: {saveData.step}, Время: {saveData.min}:{saveData.sec}");
     }
-
-    // Автосохранение
-    //void OnApplicationQuit()
-    //{
-    //    AutoSave();
-    //}
-
-    //void OnApplicationPause(bool pauseStatus)
-    //{
-    //    if (pauseStatus) AutoSave();
-    //}
-
-    //private void AutoSave()
-    //{
-    //    try
-    //    {
-    //        if (cubeManager != null)
-    //        {
-    //            var saveData = CollectSaveData();
-    //            string json = JsonUtility.ToJson(saveData);
-    //            PlayerPrefs.SetString("RubikCube_AutoSave", json);
-    //            PlayerPrefs.Save();
-    //            Debug.Log("Автосохранение выполнено");
-    //        }
-    //    }
-    //    catch (System.Exception e)
-    //    {
-    //        Debug.LogError($"Ошибка автосохранения: {e.Message}");
-    //    }
-    //}
-
-    //// Автозагрузка при старте
-    //public void LoadAutoSave()
-    //{
-    //    if (PlayerPrefs.HasKey("RubikCube_AutoSave"))
-    //    {
-    //        string json = PlayerPrefs.GetString("RubikCube_AutoSave");
-    //        LoadFromJSON(json);
-    //        Debug.Log("Автосохранение загружено");
-    //    }
-    //}
-
-    // JavaScript функции
-#if UNITY_WEBGL && !UNITY_EDITOR
-    [DllImport("__Internal")]
-    private static extern void DownloadFile(string filename, string data);
-    
-    [DllImport("__Internal")]
-    private static extern void TriggerFileUpload();
-    
-    [DllImport("__Internal")]
-    private static extern void ShowSaveSuccess(string message);
-    
-    [DllImport("__Internal")]
-    private static extern void ShowSaveError(string message);
-#endif
 }
