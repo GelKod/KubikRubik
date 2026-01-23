@@ -380,6 +380,9 @@ public class CubeManager : MonoBehaviour
             case "LOAD_DATA":
                 saveSystem.LoadFromJSON(payload);
                 break;
+            case "SET_THEME":
+                CreateCube(payload);
+                break;
         }
     }
 }

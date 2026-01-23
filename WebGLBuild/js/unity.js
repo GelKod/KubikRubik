@@ -1,38 +1,37 @@
-let unityInstance = null;
+var canvas = document.querySelector("#unity-canvas");
+var unityInstance = null;
 
-createUnityInstance(document.querySelector("canvas"), config)
-  .then(instance => {
+createUnityInstance(canvas, {
+    dataUrl: "Build/WebGLBuild.data",
+    frameworkUrl: "Build/WebGLBuild.framework.js",
+    codeUrl: "Build/WebGLBuild.wasm",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "DefaultCompany",
+    productName: "KubikRubik",
+    productVersion: "0.1",
+}, (progress) => {
+    // console.log("Loading... " + Math.round(progress * 100) + "%");
+}).then((instance) => {
     unityInstance = instance;
-  });
+});
 
-function sendCommand(cmd, payload = "") {
-  if (!unityInstance) return;
-  unityInstance.SendMessage(
-    "WebGLEvent",
-    "Command",
-    cmd + "|" + payload
-  );
-}
-
-// Unity → JS
-window.onUnityEvent = function (event) {
-  console.log("Unity event:", event);
-
-  switch (event.type) {
-
-    case "SET_TIME": {
-      const t = JSON.parse(event.payload);
-      document.getElementById("TimeM").textContent = t.min;
-      document.getElementById("TimeS").textContent = t.sec;
-      break;
+window.onUnityEvent = function(e) {
+    switch (e.type) {
+        case "SET_TIME":
+            const time = JSON.parse(e.payload);
+            document.getElementById("time").innerText = `${time.min}:${time.sec.toString().padStart(2, '0')}`;
+            break;
+        case "SET_STEP":
+            document.getElementById("steps").innerText = e.payload;
+            break;
+        case "WIN_GAME":
+            alert("You won!");
+            break;
     }
-
-    case "SET_STEP":
-      document.getElementById("Step").textContent = event.payload;
-      break;
-
-    case "WIN_GAME":
-      alert("ПОБЕДА!");
-      break;
-  }
 };
+
+document.getElementById("theme-selector").addEventListener("change", (e) => {
+    const theme = e.target.value;
+    const msg = { type: "SET_THEME", payload: theme };
+    unityInstance.SendMessage("WebGLEvent", "Command", JSON.stringify(msg));
+});
