@@ -35,25 +35,12 @@ public class WebGLEvent : MonoBehaviour
     }
 
     // JS → Unity
-    public void Command(string command)
+    public void Command(string json)
     {
-        var parts = command.Split('|');
-        var cmd = parts[0];
-        var payload = parts.Length > 1 ? parts[1] : "";
-
-        switch (cmd)
+        EventMessage msg = JsonUtility.FromJson<EventMessage>(json);
+        if (msg != null)
         {
-            case "SET_SPEED":
-                cubeManager.SetSpeed(float.Parse(payload));
-                break;
-
-            case "SHUFFLE":
-                cubeManager.WebGL_Shuffle();
-                break;
-
-            case "RESET":
-                cubeManager.CreateCube();
-                break;
+            cubeManager.HandleJSEvent(msg.type, msg.payload);
         }
     }
 }

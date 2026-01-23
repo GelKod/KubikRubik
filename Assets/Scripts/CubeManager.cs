@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -359,5 +359,27 @@ public class CubeManager : MonoBehaviour
         WebGLEvent.SendEvent("WIN_GAME","");
 
         CreateCube();
+    }
+
+    public void HandleJSEvent(string type, string payload)
+    {
+        switch (type)
+        {
+            case "SET_SPEED":
+                if (float.TryParse(payload, out float speed))
+                {
+                    SetSpeed(speed);
+                }
+                break;
+            case "SHUFFLE":
+                WebGL_Shuffle();
+                break;
+            case "RESET":
+                CreateCube();
+                break;
+            case "LOAD_DATA":
+                saveSystem.LoadFromJSON(payload);
+                break;
+        }
     }
 }

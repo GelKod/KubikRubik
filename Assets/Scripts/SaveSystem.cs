@@ -96,7 +96,6 @@ public class SaveSystem : MonoBehaviour
     {
         CubeSaveData saveData = JsonUtility.FromJson<CubeSaveData>(json);
         ApplySaveData(saveData);
-        Debug.Log("Ебало будет бито");
     }
 
     // Применение сохраненных данных
@@ -121,7 +120,6 @@ public class SaveSystem : MonoBehaviour
             cubelet[4] = c.ry;
             cubelet[5] = c.rz;
             cubelet[6] = c.rw;
-            Debug.Log(cubelet[0]);
             allCubes.Add(cubelet);
         }
 
@@ -134,10 +132,8 @@ public class SaveSystem : MonoBehaviour
         cubeManager.rotationSpeed = saveData.rotationSpeed;
         cubeManager._style = saveData.cubeStyle;
 
-        Debug.Log(cubeManager._style);
-
-        WebGLEvent.SendEvent("SET_STEP", saveData.step);
-        WebGLEvent.SendEvent("SET_SPEED", saveData.rotationSpeed);
+        WebGLEvent.SendEvent("SET_STEP", saveData.step.ToString());
+        WebGLEvent.SendEvent("SET_SPEED", saveData.rotationSpeed.ToString());
         WebGLEvent.SendEvent("SET_TIME", cubeManager.timerClass);
 
         Debug.Log($"Сохранение загружено! Шаги: {saveData.step}, Время: {saveData.min}:{saveData.sec}");
