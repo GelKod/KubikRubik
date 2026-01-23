@@ -4,7 +4,7 @@ This document describes the communication bridge between Unity and JavaScript (W
 
 ## Unity -> JavaScript
 
-Events sent from Unity to JavaScript.
+Events sent from Unity to JavaScript. These are sent as a JSON string to the `window.onUnityEvent` function in JavaScript.
 
 | Event Type | Payload                                             | Description                               |
 |------------|-----------------------------------------------------|-------------------------------------------|
@@ -15,7 +15,7 @@ Events sent from Unity to JavaScript.
 
 ## JavaScript -> Unity
 
-Events sent from JavaScript to Unity.
+Events sent from JavaScript to Unity. These are sent as a JSON string to the `Command` method on the `WebGLEvent` component in Unity.
 
 | Event Type  | Payload                                             | Description                               |
 |-------------|-----------------------------------------------------|-------------------------------------------|

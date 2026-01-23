@@ -88,7 +88,7 @@ public class SaveSystem : MonoBehaviour
     // Вызывается из HTML кнопки "Сохранить"
     public void SaveToJSON()
     {
-        WebGLBridge.SendEvent("SAVE_DATA", JsonUtility.ToJson(CollectSaveData(), true));
+        WebGLEvent.SendEvent("SAVE_DATA", JsonUtility.ToJson(CollectSaveData(), true));
     }
 
     // Загрузка из JSON строки
@@ -132,9 +132,9 @@ public class SaveSystem : MonoBehaviour
         cubeManager.rotationSpeed = saveData.rotationSpeed;
         cubeManager._style = saveData.cubeStyle;
 
-        WebGLBridge.SendEvent("SET_STEP", saveData.step.ToString());
-        WebGLBridge.SendEvent("SET_SPEED", saveData.rotationSpeed.ToString());
-        WebGLBridge.SendEvent("SET_TIME", JsonUtility.ToJson(cubeManager.timerClass));
+        WebGLEvent.SendEvent("SET_STEP", saveData.step.ToString());
+        WebGLEvent.SendEvent("SET_SPEED", saveData.rotationSpeed.ToString());
+        WebGLEvent.SendEvent("SET_TIME", cubeManager.timerClass);
 
         Debug.Log($"Сохранение загружено! Шаги: {saveData.step}, Время: {saveData.min}:{saveData.sec}");
     }

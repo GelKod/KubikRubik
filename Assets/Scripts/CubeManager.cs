@@ -217,7 +217,7 @@ public class CubeManager : MonoBehaviour
             }
         }
         this.step++;
-        WebGLBridge.SendEvent("SET_STEP", this.step.ToString());
+        WebGLEvent.SendEvent("SET_STEP", this.step.ToString());
         canTimer = true;
         canRotate = true;
     }
@@ -311,7 +311,7 @@ public class CubeManager : MonoBehaviour
         {
             lastSec = sec;
             timerClass = new TimerClass { min = min, sec = sec };
-            WebGLBridge.SendEvent("SET_TIME", JsonUtility.ToJson(timerClass));
+            WebGLEvent.SendEvent("SET_TIME", JsonUtility.ToJson(timerClass));
         }
     }
 
@@ -356,7 +356,7 @@ public class CubeManager : MonoBehaviour
         Debug.Log("Победа! Кубик Рубика собран!");
         canTimer = false; // Останавливаем таймер
 
-        WebGLBridge.SendEvent("WIN_GAME","");
+        WebGLEvent.SendEvent("WIN_GAME","");
 
         CreateCube();
     }
