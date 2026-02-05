@@ -1,20 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="utf-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация | Rubiks Cube 3D</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
 </head>
 <body>
+    <div class="notification-container" id="notification-container"></div>
 
-<h2>Login</h2>
+    <div class="auth-container">
+        <!-- Login Form -->
+        <div id="login-form" class="active">
+            <div class="auth-header">
+                <h1>Вход</h1>
+                <p>Добро пожаловать обратно!</p>
+            </div>
 
-<input id="username" placeholder="Username">
-<input id="password" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
+            <div class="form-group">
+                <label for="username">Имя пользователя</label>
+                <input type="text" id="username" placeholder="Введите ваш логин">
+            </div>
 
-<pre id="result"></pre>
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
 
-<script src="js/BD.js"></script>
+            <button class="auth-btn" onclick="handleLogin()">Войти</button>
 
+            <div class="auth-footer">
+                Нет аккаунта? <a href="#" onclick="toggleForm()">Зарегистрироваться</a>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form">
+            <div class="auth-header">
+                <h1>Регистрация</h1>
+                <p>Создайте новый аккаунт</p>
+            </div>
+
+            <div class="form-group">
+                <label for="reg-username">Имя пользователя</label>
+                <input type="text" id="reg-username" placeholder="Выберите логин">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-password">Пароль</label>
+                <input type="password" id="reg-password" placeholder="••••••••">
+            </div>
+
+            <div class="form-group">
+                <label for="reg-password-confirm">Подтвердите пароль</label>
+                <input type="password" id="reg-password-confirm" placeholder="••••••••">
+            </div>
+
+            <button class="auth-btn" onclick="handleRegister()">Создать аккаунт</button>
+
+            <div class="auth-footer">
+                Уже есть аккаунт? <a href="#" onclick="toggleForm()">Войти</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/BD.js"></script>
+    <script>
+        function toggleForm() {
+            const loginForm = document.getElementById('login-form');
+            const regForm = document.getElementById('register-form');
+            loginForm.classList.toggle('active');
+            regForm.classList.toggle('active');
+        }
+    </script>
 </body>
 </html>

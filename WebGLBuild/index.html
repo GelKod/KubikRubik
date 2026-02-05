@@ -8,9 +8,10 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <link rel="stylesheet" href="TemplateData/diagnostics.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="TemplateData/diagnostics.js"></script>
     <link rel="stylesheet" href="css/main.css">
+    <script src="js/BD.js"></script>
   </head>
 
 
@@ -31,6 +32,8 @@
   </script>
 
   <body>
+    <div class="notification-container" id="notification-container"></div>
+
     <!-- Шапка -->
     <div class="header">
       <h1>Кубик Рубика 3D</h1>
@@ -124,7 +127,10 @@
                 <span>📊</span>
                 <span>Экспорт статистики</span>
               </button>
-              <button onclick="logout()">Logout</button>
+              <button class="unity-button" onclick="logout()" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); margin-top: 10px;">
+                <span>🚪</span>
+                <span>Выход</span>
+              </button>
             </div>
 
           <!-- Слайдер скорости -->
