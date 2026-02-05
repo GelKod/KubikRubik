@@ -134,7 +134,7 @@ public class SaveSystem : MonoBehaviour
 
         WebGLEvent.SendEvent("SET_STEP", saveData.step.ToString());
         WebGLEvent.SendEvent("SET_SPEED", saveData.rotationSpeed.ToString());
-        WebGLEvent.SendEvent("SET_TIME", cubeManager.timerClass);
+        WebGLEvent.SendEvent("SET_TIME", cubeManager.timerClass.ToString());
 
         Debug.Log($"Сохранение загружено! Шаги: {saveData.step}, Время: {saveData.min}:{saveData.sec}");
     }

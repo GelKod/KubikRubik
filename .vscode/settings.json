@@ -56,5 +56,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "KubikRubik.sln"
+    "dotnet.defaultSolution": "KubikRubik.sln",
+    "dotnet.preferCSharpExtension": true
 }

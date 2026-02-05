@@ -292,14 +292,12 @@ public class CubeManager : MonoBehaviour
             StartCoroutine(RotateFace(facePieces, rotationAxis));
         }
     }
-
     [System.Serializable]
     public class TimerClass
     {
         public int min;
         public int sec;
     }
-
     void Timer()
     {
         _elapsedTime += Time.deltaTime;
@@ -314,15 +312,12 @@ public class CubeManager : MonoBehaviour
             WebGLEvent.SendEvent("SET_TIME", JsonUtility.ToJson(timerClass));
         }
     }
-
-
     void ClearTimer()
     {
         _elapsedTime = 0f;
         timerClass = null;
         canTimer = false;
     }
-
     // Методы для вызова из HTML (если нужно)
     public void WebGL_CreateCube(string style) => CreateCube(style);
     public void WebGL_Shuffle() { if (canRotate) StartCoroutine(ShuffleCube()); }
@@ -352,9 +347,7 @@ public class CubeManager : MonoBehaviour
 
         }
         saveSystem.SaveToJSON();
-        // Если все кубики на своих местах
-        Debug.Log("Победа! Кубик Рубика собран!");
-        canTimer = false; // Останавливаем таймер
+        canTimer = false;
 
         WebGLEvent.SendEvent("WIN_GAME","");
 

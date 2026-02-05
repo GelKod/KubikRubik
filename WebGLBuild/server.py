@@ -8,4 +8,5 @@ Handler = http.server.SimpleHTTPRequestHandler
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
     print(f"Сервер запущен на порту {PORT}")
+    print("http://localhost:8000/WebGLBuild/login.html")
     httpd.serve_forever()
